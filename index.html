@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<!--
+-->
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+
+<div id="app">
+    <textarea v-model="updtext">{{ updtext }}</textarea>
+    <button v-on:click="apiput">update</button>{{updid}}<br>
+    <input v-model="msg">
+    <button v-on:click="postapi">postapi</button>
+    {{ msg }}<br>
+    {{ city }}
+    <button v-on:click="api">api</button>
+    <button v-on:click="apiins">apiins</button><br>
+    <ul>
+	<li v-for="row in rows"><button v-on:click="apiupd(row.id)">{{ row.title }} {{ row.text }}</button><button v-on:click="apidel(row.id)">delete</button></li>
+    </ul>
+    <!--
+    {{ users }}
+    -->
+</div>
+
+<script>
+/*-----
+-----*/
+
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    city: 'omiya',
+    users: 'myuser',
+    msg: "hello",
+    rows: "",
+    updtext: "updtext",
+    updid: 0,
+    condition: {
+      main: null
+    }
+  },
+    created: function(){
+          axios.get('https://jsonplaceholder.typicode.com/users')
+          .then(response => this.users = response.data)
+          //axios.get('./api.php')
+          //axios.get('/php/xdomain/181104/postlist')
+          axios.get('/php/xdomain/181104/postlist')
+          //.then(response => this.city = response.data)
+          .then(response => this.rows = response.data);
+  },
+    methods: {
+    api: function(){
+    //axios.get('https://api.openweathermap.org/data/2.5/weather?q=Osaka,jp&units=metric&appid="APIキー"')
+//    axios.get('./api.php').then(function(response){
+//      console.log(response)
+//      this.city = "btn pushed";
+//      this.city = response.status;
+//    }.bind(this))
+        alert(this.city[1].text);
+    },//function
+	apiins: function(){
+          let params = new URLSearchParams();
+          params.append('text', this.msg);
+
+          axios.post('/php/xdomain/181104/apiins', params)
+            .then(response => this.rows = response.data);
+	    /*
+	    .then(response => { 
+	      this.city = response.data;
+            }).catch(error => {
+              console.log(error);
+            });
+	    */
+          //this.city = "changed!";
+    },//function
+	postapi: function(){
+          let params = new URLSearchParams();
+          params.append('text', this.msg);
+          
+          axios.post('test.php', params)
+            .then(response => {
+              console.log('送信したテキスト: ' + response.data.text);
+            }).catch(error => {
+              console.log(error);
+            });
+    },//function
+	apiupd: function(id){
+	  //alert(id);
+          axios.get('/php/xdomain/181104/apiupd/' + id)
+            //.then(response => this.rows = response.data);
+	        .then(function(response){
+                  this.updtext = response.data[0].text;
+  	          this.updid = response.data[0].id;
+		}.bind(this));
+//            .then(response => {
+//              console.log('送信したテキスト: ' + response.data[0].id);
+//	    });
+    },//function
+	apiput: function(){
+          let params = new URLSearchParams();
+	    //alert(this.updid);
+          params.append('id', this.updid);
+          params.append('text', this.updtext);
+
+          axios.post('/php/xdomain/181104/apiput', params)
+            .then(response => this.rows = response.data);
+	    /*
+	    .then(response => { 
+	      this.city = response.data;
+            }).catch(error => {
+              console.log(error);
+            });
+	    */
+	},//function
+	apidel: function(id){
+	  //alert(id);
+          axios.get('/php/xdomain/181104/apidel/' + id)
+            .then(response => this.rows = response.data);
+
+	}//function
+  }//methods
+  })
+/*
+*/
+
+</script>
+</body>
+</html>
+
