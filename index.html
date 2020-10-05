@@ -12,21 +12,59 @@
 
 
 <div id="app">
-    <textarea v-model="updtext">{{ updtext }}</textarea>
-    <button v-on:click="apiput">update</button>{{updid}}<br>
+    <div id="updform" v-show="updformseen">
+      <textarea v-model="updtext">{{ updtext }}</textarea>
+      <button v-on:click="apiput">update</button>{{updid}}<br>
+    </div><!--updform-->
+    {{teststr}}
+    <button v-on:click="testmethod">test</button><br>
+    <button v-on:click="tagslist">tags</button><br>
+
     <input v-model="msg">
     <button v-on:click="postapi">postapi</button>
     {{ msg }}<br>
     {{ city }}
     <button v-on:click="api">api</button>
     <button v-on:click="apiins">apiins</button><br>
+
+    <div id="posts" v-show="posts_seen">
     <ul>
-	<li v-for="row in rows"><button v-on:click="apiupd(row.id)">{{ row.title }} {{ row.text }}</button><button v-on:click="apidel(row.id)">delete</button></li>
+	<li v-for="row in rows">{{ row.title }} {{ row.text }}<button v-on:click="testsingle(row.id)">test</button><button v-on:click="apiupd(row.id)">update</button><button v-on:click="apidel(row.id)">delete</button><button v-on:click="apiup(row.id)">up</button></li>
     </ul>
+    </div><!--posts-->
+
+    <div id="post" v-show="post_seen">
+	{{testrow.id}}<br>
+	{{testrow.text}}<br>
     <!--
-    {{ users }}
+	{{testid}}<br>
+	{{testtext}}<br>
+      <div id="tagrows" v-show="tagrowsseen">
+	  {{tagrows}}
     -->
-</div>
+  	<ul>
+    <!--
+  	  <li v-for="row in tagrows">{{row}}</li>
+  	  <li v-for="row in tagrows">{{row.id}}-{{row.tagid}}-{{row.testid}}{{ row.title }}</li>
+    -->
+  	  <li v-for="row in tagrows[0]">{{row.id}}-{{row.title}}</li>
+	  <li>##############################</li>
+  	  <li v-for="row in tagrows[1]">{{row.id}}-{{row.title}}</li>
+  	</ul>
+      <!--</div>tagrows-->
+    </div><!--post-->
+
+    <div id="tags" v-show="tags_seen">
+    <input v-model="taginstext">
+    <button v-on:click="tagins">tagins</button><br>
+    <input v-model="tagupdtitle">
+    <button v-on:click="tagput(tagupdid,tagupdtitle)">tagput</button><br>
+	<ul>
+	    <li v-for="tag in tags"><button v-on:click="tagsingle(tag.id)">{{tag.title}}</button><button v-on:click="tagupd(tag.id,tag.title)">update</button>{{tag.id}}<button v-on:click="tagdel(tag.id)">delete</button><button v-on:click="tagup(tag.id)">up</button></li>
+	</ul>
+    </div><!--tags-->
+
+</div><!--app-->
 
 <script>
 /*-----
@@ -42,6 +80,21 @@ var app = new Vue({
     rows: "",
     updtext: "updtext",
     updid: 0,
+    updrow: "",
+    updformseen: false,
+    posts_seen: true,
+    post_seen: false,
+    testrow: "",
+    teststr: "",
+//    testid: "",
+//    testtext: "",
+    tagrows: "",
+    tagrowsseen: true,
+    tags_seen: false,
+    tags: "",
+    taginstext: "",
+    tagupdtitle: "",
+    tagupdid: 0,
     condition: {
       main: null
     }
@@ -50,10 +103,10 @@ var app = new Vue({
           axios.get('https://jsonplaceholder.typicode.com/users')
           .then(response => this.users = response.data)
           //axios.get('./api.php')
-          //axios.get('/php/xdomain/181104/postlist')
-          axios.get('/php/xdomain/181104/postlist')
-          //.then(response => this.city = response.data)
+          //axios.get('/php/xdomain/181104/posts')
+          axios.get('/php/xdomain/181104/posts')
           .then(response => this.rows = response.data);
+          //.then(response => this.city = response.data)
   },
     methods: {
     api: function(){
@@ -92,18 +145,41 @@ var app = new Vue({
             });
     },//function
 	apiupd: function(id){
-	  //alert(id);
+          this.updformseen = true;
           axios.get('/php/xdomain/181104/apiupd/' + id)
-            //.then(response => this.rows = response.data);
-	        .then(function(response){
-                  this.updtext = response.data[0].text;
-  	          this.updid = response.data[0].id;
-		}.bind(this));
+	        //.then(function(response){
+	    .then(response => {
+                  this.updrow = response.data;
+                  this.updtext = this.updrow.text;
+  	          this.updid = this.updrow.id;
+	    });
+//                  this.updtext = response.data.text;
+//  	          this.updid = response.data.id;
+//		}.bind(this));
 //            .then(response => {
 //              console.log('送信したテキスト: ' + response.data[0].id);
-//	    });
+    },//function
+	testsingle: function(id){
+	  //alert(id);
+          this.post_seen = true;
+          this.tagrows = "";
+          axios.get('/php/xdomain/181104/testtags/' + id)
+	    .then(response => {
+		this.tagrows = response.data;
+            }).catch(error => {
+              console.log(error);
+            });
+          axios.get('/php/xdomain/181104/testsingle/' + id)
+	    .then(response => {
+		this.testrow = response.data;
+	    });
+	        //.then(function(response){
+//  	          this.testid = response.data[0].id;
+//                  this.testtext = response.data[0].text;
+//		}.bind(this));
     },//function
 	apiput: function(){
+          this.updformseen = false;
           let params = new URLSearchParams();
 	    //alert(this.updid);
           params.append('id', this.updid);
@@ -120,11 +196,50 @@ var app = new Vue({
 	    */
 	},//function
 	apidel: function(id){
-	  //alert(id);
           axios.get('/php/xdomain/181104/apidel/' + id)
             .then(response => this.rows = response.data);
+	},//function
+	apiup: function(id){
+          axios.get('/php/xdomain/181104/apiup/' + id)
+            .then(response => this.rows = response.data);
+    },//function
+	tagslist: function(){
+          this.tags_seen = !this.tags_seen;
+          axios.get('/php/xdomain/181104/tags')
+          .then(response => this.tags = response.data);
+    },//function
+	tagins: function(){
+          let params = new URLSearchParams();
+          params.append('text', this.taginstext);
+          axios.post('/php/xdomain/181104/tagins', params)
+          .then(response => this.tags = response.data);
+          this.taginstext = "";
+    },//function
+	tagupd: function(id,title){
+        this.tagupdtitle = title;
+        this.tagupdid = id;
+    },//function
+	tagput: function(){
+          let params = new URLSearchParams();
+          params.append('id', this.tagupdid);
+          params.append('title', this.tagupdtitle);
+          this.tagupdtitle = false;
 
-	}//function
+          axios.post('/php/xdomain/181104/tagput', params)
+          .then(response => this.tags = response.data);
+	},//function
+	tagdel: function(id){
+          axios.get('/php/xdomain/181104/tagdel/' + id)
+            .then(response => this.tags = response.data);
+	},//function
+	tagup: function(id){
+          axios.get('/php/xdomain/181104/tagup/' + id)
+            .then(response => this.tags = response.data);
+	},//function
+	testmethod: function(){
+          axios.get('/php/xdomain/181104/teststr')
+            .then(response => this.teststr = response.data);
+    }//last_function
   }//methods
   })
 /*
