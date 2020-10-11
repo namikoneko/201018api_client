@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title></title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/dark.min.css">
     <link rel="stylesheet" href="style.css">
@@ -42,13 +43,9 @@ const tasks = {
     created: function(){
 	this.name = this.$route.params.name;
 	//this.page = this.$route.params.page;
-	//alert("created");
-//          //axios.get('/php/xdomain/181104/posts')
 	//axios.get("/php/xdomain/201010/users/" + this.$route.params.name)
-	axios.get("/php/xdomain/201010/users/" + this.name + "?p=" + this.page)
+	axios.get("/php/xdomain/201010/task/" + this.name + "?p=" + this.page)
           .then(response => this.rows = response.data);
-//        axios.get("/php/xdomain/201010/cls/")
-//          .then(response => this.clrows = response.data);
     },//created
     methods: {// deltask ########################################
 	deltask: function(id){
@@ -73,7 +70,7 @@ const tasks = {
 	  axios.get("/php/xdomain/201010/uptask/" + this.name + "/" + id + "?p=" + this.page)
           .then(response => this.rows = response.data);
 	    this.page = 1;
-            history.pushState("","","tasks.html#/users/" + this.name + "?p=" + this.page);
+            history.pushState("","","tasks.html#/task/" + this.name + "?p=" + this.page);
 	},//uptask
 	findclnameexe: function(){//findclname####################
           //alert("instask");
@@ -94,16 +91,16 @@ const tasks = {
 	},//copytask
 	pageprevious: function(){//pageprevious###################
 	    this.page--;
-	    axios.get("/php/xdomain/201010/users/" + this.name + "?p=" + this.page)
+	    axios.get("/php/xdomain/201010/task/" + this.name + "?p=" + this.page)
           .then(response => this.rows = response.data);
-            history.pushState("","","tasks.html#/users/" + this.name + "?p=" + this.page);
+            history.pushState("","","tasks.html#/task/" + this.name + "?p=" + this.page);
 	},//pageprevious
 	pageafter: function(){//pageafter###################
 	    this.page++;
-	    axios.get("/php/xdomain/201010/users/" + this.name + "?p=" + this.page)
+	    axios.get("/php/xdomain/201010/task/" + this.name + "?p=" + this.page)
           .then(response => this.rows = response.data);
-	    //axios.get("/php/xdomain/201010/users/" + this.name + "/" + this.page)
-            history.pushState("","","tasks.html#/users/" + this.name + "?p=" + this.page);
+	    //axios.get("/php/xdomain/201010/task/" + this.name + "/" + this.page)
+            history.pushState("","","tasks.html#/task/" + this.name + "?p=" + this.page);
 	}//pageafter
     }//methods
 }//tasks
@@ -112,15 +109,16 @@ const tasks = {
 const updtask = { 
     data: function(){
       return {
-        rows: "", name: "", updtext: "", page: 0
+        rows: "", name: "", updtitle: "",  updtext: "", page: 1
       }
     },
-    template: '<div><textarea v-model="updtext">{{updtext}}</textarea><br><button v-on:click="updexe">update</button><button v-on:click="updclear">clear</button></div>',//
+    template: '<div><input type="text" v-model="updtitle"><textarea class="upd-textarea" v-model="updtext">{{updtext}}</textarea><br><button v-on:click="updexe">update</button><button v-on:click="updclear">clear</button></div>',//
     created: function(){
         this.name = this.$route.params.name;
-	axios.get("/php/xdomain/201010/users/" + this.name + "/upd/" + this.$route.params.id)
+	axios.get("/php/xdomain/201010/task/" + this.name + "/upd/" + this.$route.params.id)
 	    .then(response => {
                this.rows = response.data;
+               this.updtitle = this.rows.title;
                this.updtext = this.rows.text;
 	    });
     },//created
@@ -129,10 +127,11 @@ const updtask = {
           //alert("created");
           let params = new URLSearchParams();
           params.append('id', this.rows.id);
+          params.append('title', this.updtitle);
           params.append('text', this.updtext);
 	  axios.post("/php/xdomain/201010/tasks/updexe", params)
-          //location.href = "/200927/tasks.html#/users/" + this.$route.params.name;
-          location.href = "/200927/tasks.html#/users/" + this.name;
+          //location.href = "/200927/tasks.html#/task/" + this.$route.params.name;
+          location.href = "/200927/tasks.html#/task/" + this.name;
 	},//updexe
 	updclear: function(){
 	    this.updtext = "";
@@ -151,10 +150,10 @@ const updtask = {
 
 // routes ############################################################
 const routes = [
-  { path: '/users/:name', component: tasks },
-  //{ path: '/users/:name/:page', component: tasks },
-  { path: '/users/:name/upd/:id', component: updtask }
-  //{ path: '/users/:name/:page/upd/:id', component: updtask }
+  { path: '/task/:name', component: tasks },
+  //{ path: '/task/:name/:page', component: tasks },
+  { path: '/task/:name/upd/:id', component: updtask }
+  //{ path: '/task/:name/:page/upd/:id', component: updtask }
   //{ path: '/yaguchi', component: yaguchi }
 ]
 
@@ -169,7 +168,7 @@ new Vue({
 //    el: '#app',
   router,
   created: function(){
-        axios.get('/php/xdomain/201010/users')
+        axios.get('/php/xdomain/201010/task')
         .then(response => this.rows = response.data);
   },
   data: {
@@ -178,7 +177,7 @@ new Vue({
   },
    methods: {
 //     reload: function(){
-//       location.href = "/200927/tasks.html#/users/yaguchi";
+//       location.href = "/200927/tasks.html#/task/yaguchi";
 //     }
   }
 //})
