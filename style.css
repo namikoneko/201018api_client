@@ -1,0 +1,18 @@
+@charset "utf-8";
+.ins-find-grid {
+   display: grid; 
+   grid-template-columns: 1fr 1fr;
+}
+.tasks-grid {
+   display: grid; 
+   grid-template-columns: 1.5fr 2fr 1fr 0.7fr 0.7fr 0.7fr;
+   border-bottom: 1px dotted #eee;
+   /*
+   vertical-align: center; 
+   */
+}
+.tasks-grid div {
+   /*
+   border: 1px solid #fff;
+   */
+}

@@ -17,7 +17,7 @@
       <button v-on:click="apiput">update</button>{{updid}}<br>
     </div><!--updform-->
     {{teststr}}
-    <button v-on:click="testmethod">test</button><br>
+    <a v-on:click="testmethod">test</a><br>
     <button v-on:click="tagslist">tags</button><br>
 
     <input v-model="msg">
@@ -47,9 +47,9 @@
   	  <li v-for="row in tagrows">{{row}}</li>
   	  <li v-for="row in tagrows">{{row.id}}-{{row.tagid}}-{{row.testid}}{{ row.title }}</li>
     -->
-  	  <li v-for="row in tagrows[0]">{{row.id}}-{{row.title}}</li>
+  	  <li v-for="row in tagrows[0]">{{row.id}}-{{row.title}}-{{row.mapid}}<button v-on:click="tagoff(row.mapid,row.testid)">tagoff</button></li>
 	  <li>##############################</li>
-  	  <li v-for="row in tagrows[1]">{{row.id}}-{{row.title}}</li>
+  	  <li v-for="row in tagrows[1]">{{row.id}}-{{row.title}}-{{row.testid}}<button v-on:click="tagadd(row.id,row.testid)">tagadd</button></li>
   	</ul>
       <!--</div>tagrows-->
     </div><!--post-->
@@ -214,6 +214,20 @@ var app = new Vue({
           axios.post('/php/xdomain/181104/tagins', params)
           .then(response => this.tags = response.data);
           this.taginstext = "";
+    },//function
+	tagadd: function(id,testid){
+          let params = new URLSearchParams();
+          params.append('tagid', id);
+          params.append('testid', testid);
+          axios.post('/php/xdomain/181104/tagadd', params)
+          .then(response => this.tagrows = response.data);
+    },//function
+	tagoff: function(mapid,testid){
+          let params = new URLSearchParams();
+          params.append('mapid', mapid);
+          params.append('testid', testid);
+          axios.post('/php/xdomain/181104/tagoff', params)
+          .then(response => this.tagrows = response.data);
     },//function
 	tagupd: function(id,title){
         this.tagupdtitle = title;
