@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/dark.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+
+<div id="app">
+  <h1>Hello App!</h1>
+    <router-link to="/users/yaguchi">yaguchi</router-link>
+    <ul>
+    <!--
+    -->
+    </ul>
+  <p>
+    <!--
+    -->
+  </p>
+  <!-- ルートとマッチしたコンポーネントがここへ描画されます -->
+  <router-view></router-view>
+</div>
+
+  <script>
+
+// tasks ############################################################
+const tasks = { 
+    data: function(){
+      return {
+        institle: "", instext: "", findclname: "", findtask: "", rows: "", clrows: "", name: ""
+      }
+    },
+	//template: '<div>{{rows}}</div>',
+    template: '<div><div class="ins-find-grid"><div>cl-name: <input type="text" v-model="institle">task-name: <input type="text" v-model="instext"><button v-on:click="instask">insert</button></div><div>cl-find: <input type="text" v-model="findclname"><button v-on:click="findclnameexe">find-cl</button><br>find-task: <input type="text" v-model="findtask"><button v-on:click="findtaskexe">find-task</button></div></div><hr><div class="tasks-grid"><div v-for="row in rows">{{row.title}} {{row.text}}  <button v-on:click="uptask(row.id)">up</button> <router-link v-bind:to="{ path: name + \'/upd/\' + row.id }">update</router-link> <button v-on:click="deltask(row.id)">delete</button></div></div></div>',//成功
+    created: function(){
+	this.name = this.$route.params.name;
+	//alert("created");
+//          //axios.get('/php/xdomain/181104/posts')
+	axios.get("/php/xdomain/201010/users/" + this.$route.params.name)
+          .then(response => this.rows = response.data);
+//        axios.get("/php/xdomain/201010/cls/")
+//          .then(response => this.clrows = response.data);
+    },//created
+    methods: {// deltask ########################################
+	deltask: function(id){
+//          alert("created");
+	  axios.get("/php/xdomain/201010/deltask/" + this.name + "/" + id)
+          .then(response => this.rows = response.data);
+	},//deltask
+	instask: function(){//instask####################
+//          alert(this.name);
+//          alert(this.instext);
+          let params = new URLSearchParams();
+          params.append('name', this.name);
+          params.append('title', this.institle);
+          params.append('text', this.instext);
+	  axios.post("/php/xdomain/201010/instask", params)
+          .then(response => this.rows = response.data);
+          this.institle = "";
+          this.instext = "";
+	},//instask
+	uptask: function(id){//instask####################
+//          alert("instask");
+	  axios.get("/php/xdomain/201010/uptask/" + this.name + "/" + id)
+          .then(response => this.rows = response.data);
+	},//uptask
+	findclnameexe: function(){//findclname####################
+          //alert("instask");
+	  axios.get("/php/xdomain/201010/findclname/" + this.name + "/" + this.findclname)
+          .then(response => this.rows = response.data);
+          this.findclname = "";
+	},//findclname
+	findtaskexe: function(){//findtask####################
+          //alert("instask");
+	  axios.get("/php/xdomain/201010/findtask/" + this.name + "/" + this.findtask)
+          .then(response => this.rows = response.data);
+          this.findtask = "";
+	}//findtask
+    }//methods
+}//tasks
+
+// updtask ############################################################
+const updtask = { 
+    data: function(){
+      return {
+        rows: "",
+        name: "",
+        updtext: "",
+        formseen: false,
+        rowsseen: true
+      }
+    },
+    //template: '<div>aaabbb{{rows}}</div>',
+    //template: '<div><textarea v-model="updtext">{{updtext}}</textarea></div>',//
+    template: '<div><textarea v-model="updtext">{{updtext}}</textarea><br><button v-on:click="updexe">update</button></div>',//
+    created: function(){
+        this.name = this.$route.params.name;
+	axios.get("/php/xdomain/201010/users/" + this.$route.params.name + "/upd/"+ this.$route.params.id)
+	    .then(response => {
+               this.rows = response.data;
+               this.updtext = this.rows.text;
+	    });
+    },//created
+    methods: {// updtask ########################################
+	updexe: function(){
+          //alert("created");
+          let params = new URLSearchParams();
+          params.append('id', this.rows.id);
+          params.append('text', this.updtext);
+	  axios.post("/php/xdomain/201010/tasks/updexe", params)
+          location.href = "/200927/tasks.html#/users/" + this.$route.params.name;
+	}//updexe
+    }//methods
+}//updtask
+
+    const Foo = { template: '<div>foo{{ this.$router.app.mystr }}</div>' }
+    const Bar = { 
+    data: function(){
+      return {
+        count: 9
+      }
+    },
+    template: '<div>bar{{count}}</div>' }
+
+// routes ############################################################
+const routes = [
+  { path: '/users/:name', component: tasks },
+  { path: '/users/:name/upd/:id', component: updtask }
+  //{ path: '/yaguchi', component: yaguchi }
+]
+
+// routes ############################################################
+const router = new VueRouter({
+  routes // `routes: routes` の短縮表記
+})
+
+// app ############################################################
+//const app = new Vue({
+new Vue({
+//    el: '#app',
+  router,
+  created: function(){
+        axios.get('/php/xdomain/201010/users')
+        .then(response => this.rows = response.data);
+  },
+  data: {
+    rows: "",
+    instext: ""
+  }
+//})
+}).$mount('#app') 
+  </script>
+
+</body>
+</html>
