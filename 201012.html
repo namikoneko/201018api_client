@@ -26,7 +26,7 @@ const post = {
         institle: "", instext: "", findclname: "", findtask: "", rows: "", clrows: "", name: "", page: 1
       }
     },//data
-    template: '<div class="post-flex"><div class="post-item" v-for="row in rows"><router-link v-bind:to="{ path: \'post/\' + row.id }">{{row.title}}</router-link></div></div>',
+    template: '<div class="post-flex"><div class="post-item" v-for="row in rows"><router-link v-bind:to="{ path: \'/post/\' + row.id }">{{row.title}}</router-link></div></div>',
     created: function(){
 	axios.get("/php/xdomain/201012/post")
           .then(response => this.rows = response.data);
@@ -40,7 +40,7 @@ const postthread = {
         postid: 0,row: "",institle: "", instext: "", findclname: "", findtask: "", rows: "", clrows: "", name: "", page: 1
       }
     },//data
-    template: '<div>{{row.title}}{{row.text}}<br>cl-name: <input type="te    xt" v-model="institle">task-name: <input type="text" v-model="instext"><button v-on:click="insthread">insert</button><ul><li v-for="row in rows">{{row.id}}-{{row.title}}<router-link v-bind:to="{ path: \'/thread/upd/\' + postid + \'/\' + row.id }">update</router-link></li></ul></div>',
+    template: '<div><router-link :to="{ name: \'post\'}">home</router-link>{{row.title}}{{row.text}}<br>cl-name: <input type="te    xt" v-model="institle">task-name: <input type="text" v-model="instext"><button v-on:click="insthread">insert</button><ul><li v-for="row in rows">{{row.id}}-{{row.title}}<div v-for="post in row.post">{{post.id}}-{{post.title}}</div><router-link v-bind:to="{ path: \'/thread/upd/\' + postid + \'/\' + row.id }">update</router-link></li></ul></div>',
     //template: '<ul><li v-for="row in rows">{{row.title}}</li></ul>',
     created: function(){
 	this.postid = this.$route.params.id;

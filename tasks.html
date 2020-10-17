@@ -14,8 +14,8 @@
 
 <div id="app">
   <h1>Hello App!</h1>
-    <!--
     <router-link to="/users/yaguchi">yaguchi</router-link>
+    <!--
     <a href="/200927/tasks.html#/users/yaguchi">yaguchi</a>
     <button v-on:click="reload">reload</button>
     -->
@@ -54,8 +54,6 @@ const tasks = {
           .then(response => this.rows = response.data);
 	},//deltask
 	instask: function(){//instask####################
-//          alert(this.name);
-//          alert(this.instext);
           let params = new URLSearchParams();
           params.append('name', this.name);
           params.append('title', this.institle);
@@ -131,7 +129,10 @@ const updtask = {
           params.append('text', this.updtext);
 	  axios.post("/php/xdomain/201010/tasks/updexe", params)
           //location.href = "/200927/tasks.html#/task/" + this.$route.params.name;
-          location.href = "/200927/tasks.html#/task/" + this.name;
+          //location.href = "/200927/tasks.html#/task/" + this.name;
+	axios.get("/php/xdomain/201010/task/" + this.name + "?p=" + this.page)
+          .then(response => this.rows = response.data);
+	    router.push({ name: 'home', params: {name: this.name}});
 	},//updexe
 	updclear: function(){
 	    this.updtext = "";
@@ -150,7 +151,9 @@ const updtask = {
 
 // routes ############################################################
 const routes = [
-  { path: '/task/:name', component: tasks },
+  { path: '/task/:name',
+      name: 'home',
+      component: tasks },
   //{ path: '/task/:name/:page', component: tasks },
   { path: '/task/:name/upd/:id', component: updtask }
   //{ path: '/task/:name/:page/upd/:id', component: updtask }
