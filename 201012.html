@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/dark.min.css">
+    <link rel="stylesheet" href="style2.css">
+</head>
+<body>
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+
+<div id="app">
+  <h1>Hello App!</h1>
+
+  <router-view></router-view>
+</div>
+
+  <script>
+// post ############################################################
+const post = { 
+    data: function(){
+      return {
+        institle: "", instext: "", findclname: "", findtask: "", rows: "", clrows: "", name: "", page: 1
+      }
+    },//data
+    template: '<div class="post-flex"><div class="post-item" v-for="row in rows"><router-link v-bind:to="{ path: \'post/\' + row.id }">{{row.title}}</router-link></div></div>',
+    created: function(){
+	axios.get("/php/xdomain/201012/post")
+          .then(response => this.rows = response.data);
+    }//created
+}//post
+
+// post-thread ############################################################
+const postthread = { 
+    data: function(){
+      return {
+        postid: 0,row: "",institle: "", instext: "", findclname: "", findtask: "", rows: "", clrows: "", name: "", page: 1
+      }
+    },//data
+    template: '<div>{{row.title}}{{row.text}}<br>cl-name: <input type="te    xt" v-model="institle">task-name: <input type="text" v-model="instext"><button v-on:click="insthread">insert</button><ul><li v-for="row in rows">{{row.id}}-{{row.title}}<router-link v-bind:to="{ path: \'/thread/upd/\' + postid + \'/\' + row.id }">update</router-link></li></ul></div>',
+    //template: '<ul><li v-for="row in rows">{{row.title}}</li></ul>',
+    created: function(){
+	this.postid = this.$route.params.id;
+	axios.get("/php/xdomain/201012/post/" + this.postid)
+          .then(response => this.row = response.data);
+	axios.get("/php/xdomain/201012/thread/" + this.postid)
+          .then(response => this.rows = response.data);
+    },//created
+    methods: {
+        insthread: function(){//insthread ####################
+          //alert(this.postid);
+          let params = new URLSearchParams();
+          params.append('postid', this.postid);
+          params.append('title', this.institle);
+          params.append('text', this.instext);
+          axios.post("/php/xdomain/201012/insthread", params)
+          .then(response => this.rows = response.data);
+          this.institle = "";
+          this.instext = "";
+        }//insthread
+    }//methods
+}//post-thread
+
+// updthread ############################################################
+const updthread = { 
+    data: function(){
+      return {
+        offaddpost: "loading...",offpost: "loading...",addpost: "loading...",postid: 0, id: 0,rows: "", name: "", updtitle: "",  updtext: "", page: 1
+      }
+    },
+    template: '<div><input type="text" v-model="updtitle"><textarea class="upd-textarea" v-model="updtext">{{updtext}}</textarea><br><button v-on:click="updexe">update</button><button v-on:click="updclear">clear</button><button v-on:click="delthread">delete</button><hr><button v-for="row in offpost" v-on:click="offpostexe(row.id)">{{row.id}}-{{row.title}}</button><hr><button v-for="row in addpost" v-on:click="addpostexe(row.id)">{{row.id}}-{{row.title}}</button><hr>offpost{{offpost}}<hr>addpost{{addpost}}</div>',//
+    created: function(){                                                                                                                                                                                                                                                                                                                                                        	
+        this.postid = this.$route.params.postid;
+        this.id = this.$route.params.id;
+	axios.get("/php/xdomain/201012/thread/upd/" + this.id)
+	    .then(response => {
+               this.rows = response.data;
+               this.updtitle = this.rows.title;
+               this.updtext = this.rows.text;
+	    });
+//	axios.get("/php/xdomain/201012/offaddpost/" + this.id)//offaddpost
+//	    .then(response => this.offaddpost = response.data);
+//        this.offpost = this.offaddpost[0];
+//        this.addpost = this.offaddpost[1];
+//	this.offpost = this.offpost.filter(row => row.id != this.postid);
+//	this.addpost = this.addpost.filter(row => row.id != this.postid);
+	    //.then(response => this.offaddpost = response.data.filter(data => data[0].id != this.postid));
+	axios.get("/php/xdomain/201012/offpost/" + this.id)//offpost
+          //.then(response => this.offpost = response.data);
+       	  .then(response => this.offpost = response.data.filter(row => row.id != this.postid));
+	axios.get("/php/xdomain/201012/addpost/" + this.id)//addpost
+          .then(response => this.addpost = response.data);
+    },//created
+    methods: {
+	updexe: function(){// updexe ######################################
+          //alert("created");
+          let params = new URLSearchParams();
+          params.append('id', this.id);
+          //params.append('postid', this.postid);
+          params.append('title', this.updtitle);
+          params.append('text', this.updtext);
+	  axios.post("/php/xdomain/201012/threadupdexe", params)
+//	  axios.get("/php/xdomain/201012/post/" + this.postid)
+//          .then(response => this.rows = response.data);
+	  router.push({ name: 'postthread', params: {id: this.postid}});
+	},//updexe
+	updclear: function(){
+	    this.updtext = "";
+	},//updclear
+        delthread: function(){
+	  axios.get("/php/xdomain/201012/thread/del/" + this.id)
+	  router.push({ name: 'postthread', params: {id: this.postid}});
+        },//delthread
+        offpostexe: function(postid){//offpostexe ##########
+	  axios.get("/php/xdomain/201012/offpostexe/" + postid + "/" + this.id)
+       	  //.then(response => this.offpost = response.data.filter(row => row.id != this.postid));//成功
+		.then(response => {
+		    this.offpost = response.data.filter(row => row.id != this.postid);
+	    axios.get("/php/xdomain/201012/addpost/" + this.id)
+              .then(response => this.addpost = response.data);
+		});
+	},//offpostexe
+        addpostexe: function(postid){//addpostexe ####################
+	  axios.get("/php/xdomain/201012/addpostexe/" + postid + "/" + this.id)
+		.then(response => {
+		    this.addpost = response.data;
+	    axios.get("/php/xdomain/201012/offpost/" + this.id)
+              .then(response => this.offpost = response.data.filter(row => row.id != this.postid));
+		});
+	}//addpostexe
+    }//methods
+}//updthread
+
+// thread ############################################################
+const thread = { 
+    data: function(){
+      return {
+        institle: "", instext: "", findclname: "", findtask: "", rows: "", clrows: "", name: "", page: 1
+      }
+    },//data
+    template: '<ul><li v-for="row in rows">{{row.title}}</li></ul>',
+    created: function(){
+	axios.get("/php/xdomain/201012/thread")
+          .then(response => this.rows = response.data);
+    }//created
+}//thread
+
+// routes ############################################################
+const routes = [
+  { path: '/thread',
+      name: 'thread',
+      component: thread },
+  { path: '/post',
+      name: 'post',
+      component: post },
+  { path: '/post/:id',
+      name: 'postthread',
+      component: postthread },
+  { path: '/thread/upd/:postid/:id',
+      name: 'updthread',
+      component: updthread}
+  //{ path: '/task/:name/:page', component: tasks },
+  //{ path: '/task/:name/upd/:id', component: updtask }
+  //{ path: '/task/:name/:page/upd/:id', component: updtask }
+  //{ path: '/yaguchi', component: yaguchi }
+]
+
+// routes ############################################################
+const router = new VueRouter({
+  routes // `routes: routes` の短縮表記
+})
+
+// app ############################################################
+new Vue({
+  router,
+  created: function(){
+//        axios.get('/php/xdomain/201010/task')
+//        .then(response => this.rows = response.data);
+  },
+  data: {
+    rows: "",
+    instext: ""
+  },
+   methods: {
+  }
+}).$mount('#app') 
+  </script>
+
+</body>
+</html>
