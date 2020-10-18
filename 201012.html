@@ -26,11 +26,27 @@ const post = {
         institle: "", instext: "", findclname: "", findtask: "", rows: "", clrows: "", name: "", page: 1
       }
     },//data
-    template: '<div class="post-flex"><div class="post-item" v-for="row in rows"><router-link v-bind:to="{ path: \'/post/\' + row.id }">{{row.title}}</router-link></div></div>',
+    template: '<div>cl-name: <input type="text" v-model="institle"><button v-on:click="inspost">insert</button><div class="post-flex"><div class="post-item" v-for="row in rows"><router-link v-bind:to="{ path: \'/post/\' + row.id }">{{row.title}}</router-link><button v-on:click="uppost(row.id)">up</button></div></div></div>',
     created: function(){
 	axios.get("/php/xdomain/201012/post")
           .then(response => this.rows = response.data);
-    }//created
+    },//created
+    methods: {
+        inspost: function(){//inspost ####################
+          let params = new URLSearchParams();
+          params.append('title', this.institle);
+          axios.post("/php/xdomain/201012/inspost", params)
+		.then(()=>{
+        	axios.get("/php/xdomain/201012/post")
+                  .then(response => this.rows = response.data);
+                  this.institle = "";
+		});
+        },//inspost
+        uppost: function(id){//uppost ####################
+	  axios.get("/php/xdomain/201012/postup/" + id)
+            .then(response => this.rows = response.data);
+        }//uppost
+    }//methods
 }//post
 
 // post-thread ############################################################
@@ -40,7 +56,7 @@ const postthread = {
         postid: 0,row: "",institle: "", instext: "", findclname: "", findtask: "", rows: "", clrows: "", name: "", page: 1
       }
     },//data
-    template: '<div><router-link :to="{ name: \'post\'}">home</router-link>{{row.title}}{{row.text}}<br>cl-name: <input type="te    xt" v-model="institle">task-name: <input type="text" v-model="instext"><button v-on:click="insthread">insert</button><ul><li v-for="row in rows">{{row.id}}-{{row.title}}<div v-for="post in row.post">{{post.id}}-{{post.title}}</div><router-link v-bind:to="{ path: \'/thread/upd/\' + postid + \'/\' + row.id }">update</router-link></li></ul></div>',
+    template: '<div><router-link :to="{ name: \'post\'}">home</router-link><p>{{row.title}}</p><router-link :to="{ name: \'updpost\', params:{postid: postid}}">update</router-link><button v-on:click="delpost">delete</button><br>cl-name: <input type="text" v-model="institle">task-name: <input type="text" v-model="instext"><button v-on:click="insthread">insert</button><ul><li v-for="row in rows">{{row.id}}-{{row.title}}<div v-for="post in row.post">{{post.id}}-{{post.title}}</div><router-link v-bind:to="{ path: \'/thread/upd/\' + postid + \'/\' + row.id }">update</router-link><button v-on:click="upthread(row.id)">up</button></li></ul></div>',
     //template: '<ul><li v-for="row in rows">{{row.title}}</li></ul>',
     created: function(){
 	this.postid = this.$route.params.id;
@@ -60,9 +76,48 @@ const postthread = {
           .then(response => this.rows = response.data);
           this.institle = "";
           this.instext = "";
-        }//insthread
+        },//insthread
+        delpost: function(){
+	  axios.get("/php/xdomain/201012/postdel/" + this.postid)
+	    .then(()=>{
+	      router.push({ name: 'post'});
+	    });
+        },//delpost
+        upthread: function(id){//upthread ####################
+	  axios.get("/php/xdomain/201012/threadup/" + this.postid + "/" + id)
+            .then(response => this.rows = response.data);
+        }//upthread
     }//methods
 }//post-thread
+
+// updpost ############################################################
+const updpost = { 
+    data: function(){
+      return {
+        offaddpost: "loading...",offpost: "loading...",addpost: "loading...",postid: 0, id: 0,rows: "", name: "", updtitle: "",  updtext: "", page: 1
+      }
+    },
+    template: '<div><p><router-link :to="{ name: \'post\'}">home</router-link></p><p><router-link :to="{ name: \'postthread\', params:{id: postid} }">return to post</router-link></p><input type="text" v-model="updtitle"><button v-on:click="updexe">update</button>{{this.postid}}</div>',//
+    created: function(){
+        this.postid = this.$route.params.postid;
+	axios.get("/php/xdomain/201012/postupd/" + this.postid)
+	    .then(response => {
+               this.rows = response.data;
+               this.updtitle = this.rows.title;
+	    });
+    },//created
+    methods: {
+	updexe: function(){// updexe ######################################
+          let params = new URLSearchParams();
+          params.append('id', this.postid);
+          params.append('title', this.updtitle);
+	  axios.post("/php/xdomain/201012/postupdexe", params)
+	    .then(()=>{
+	      router.push({ name: 'postthread', params: {id: this.postid}});
+	    });
+	}//updexe
+    }//methods
+}
 
 // updthread ############################################################
 const updthread = { 
@@ -72,7 +127,7 @@ const updthread = {
       }
     },
     template: '<div><input type="text" v-model="updtitle"><textarea class="upd-textarea" v-model="updtext">{{updtext}}</textarea><br><button v-on:click="updexe">update</button><button v-on:click="updclear">clear</button><button v-on:click="delthread">delete</button><hr><button v-for="row in offpost" v-on:click="offpostexe(row.id)">{{row.id}}-{{row.title}}</button><hr><button v-for="row in addpost" v-on:click="addpostexe(row.id)">{{row.id}}-{{row.title}}</button><hr>offpost{{offpost}}<hr>addpost{{addpost}}</div>',//
-    created: function(){                                                                                                                                                                                                                                                                                                                                                        	
+    created: function(){
         this.postid = this.$route.params.postid;
         this.id = this.$route.params.id;
 	axios.get("/php/xdomain/201012/thread/upd/" + this.id)
@@ -161,7 +216,10 @@ const routes = [
       component: postthread },
   { path: '/thread/upd/:postid/:id',
       name: 'updthread',
-      component: updthread}
+      component: updthread},
+  { path: '/post/upd/:postid',
+      name: 'updpost',
+      component: updpost}
   //{ path: '/task/:name/:page', component: tasks },
   //{ path: '/task/:name/upd/:id', component: updtask }
   //{ path: '/task/:name/:page/upd/:id', component: updtask }
