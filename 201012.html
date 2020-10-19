@@ -19,14 +19,75 @@
 </div>
 
   <script>
+// postfind ############################################################
+      const postfind = {
+	  data() {
+	      return {
+		  findtext: "", rows: "result"
+	      };
+	  },//data
+	  template: '<div>find-thread-text: <input type="text" v-model="findtext"><router-link :to="{ name: \'findexe\', params: { findtextparam: findtext} }">find</router-link></div>',
+//<div v-for="row in rows"><router-link :to="{ name: \'thread\', params:{id: row.id}}">{{row.title}}</router-link></div>
+	  methods: {
+//            findexe(){
+//		//alert(this.findtext);
+//              let params = new URLSearchParams();
+//              params.append('findtext', this.findtext);
+//              axios.post("/php/xdomain/201012/findthreadtext", params)
+//                .then(response => this.rows = response.data);
+//            },//findexe
+          }//methods
+      }//component
+
+// findexe ############################################################
+const findexe = { 
+    data: function(){
+      return {
+        findtext: "", institle: "", instext: "", findthreadtext: "", findtask: "", rows: "", clrows: "", name: "", page: 1
+      }
+    },//data
+    //template: '<div>{{findtext}}findexe!</div>',
+    template: '<div><div class="findthread-flex"><div class="post-item" v-for="row in rows">{{row.title}}-{{row.id}}</div></div></div>',
+//    components: {
+//        "post-find": postfind
+//    },
+    created: function(){
+	  this.findtext = this.$route.params.findtextparam;
+//	  alert(this.findtext);
+          let params = new URLSearchParams();
+          params.append('text', this.findtext);
+          axios.post("/php/xdomain/201012/findthread", params)
+            .then(response => this.rows = response.data);
+    },//created
+    methods: {
+        inspost: function(){//inspost ####################
+          let params = new URLSearchParams();
+          params.append('title', this.institle);
+          axios.post("/php/xdomain/201012/inspost", params)
+		.then(()=>{
+        	axios.get("/php/xdomain/201012/post")
+                  .then(response => this.rows = response.data);
+                  this.institle = "";
+		});
+        },//inspost
+        uppost: function(id){//uppost ####################
+	  axios.get("/php/xdomain/201012/postup/" + id)
+            .then(response => this.rows = response.data);
+        }//uppost
+    }//methods
+}//findtext
+
 // post ############################################################
 const post = { 
     data: function(){
       return {
-        institle: "", instext: "", findclname: "", findtask: "", rows: "", clrows: "", name: "", page: 1
+        institle: "", instext: "", findthreadtext: "", findtask: "", rows: "", clrows: "", name: "", page: 1
       }
     },//data
-    template: '<div>cl-name: <input type="text" v-model="institle"><button v-on:click="inspost">insert</button><div class="post-flex"><div class="post-item" v-for="row in rows"><router-link v-bind:to="{ path: \'/post/\' + row.id }">{{row.title}}</router-link><button v-on:click="uppost(row.id)">up</button></div></div></div>',
+    template: '<div>cl-name: <input type="text" v-model="institle"><button v-on:click="inspost">insert</button><post-find></post-find><div class="post-flex"><div class="post-item" v-for="row in rows"><router-link v-bind:to="{ path: \'/post/\' + row.id }">{{row.title}}</router-link><button v-on:click="uppost(row.id)">up</button></div></div></div>',
+    components: {
+        "post-find": postfind
+    },
     created: function(){
 	axios.get("/php/xdomain/201012/post")
           .then(response => this.rows = response.data);
@@ -189,25 +250,39 @@ const updthread = {
     }//methods
 }//updthread
 
-// thread ############################################################
-const thread = { 
-    data: function(){
+// resultthread ############################################################
+const resultthread = { 
+    data() {
       return {
-        institle: "", instext: "", findclname: "", findtask: "", rows: "", clrows: "", name: "", page: 1
+        id: 0, institle: "", instext: "", findclname: "", findtask: "", rows: "", clrows: "", name: "", page: 1
       }
     },//data
-    template: '<ul><li v-for="row in rows">{{row.title}}</li></ul>',
+    template: '<div><div v-for="row in rows">{{row.id}}-{{row.title}}-{{row.text}}<div v-for="post in row.post">{{post.id}}-{{post.title}}</div></div></div>',
     created: function(){
-	axios.get("/php/xdomain/201012/thread")
+        this.id = this.$route.params.id;
+	axios.get("/php/xdomain/201012/resultthread/" + this.id)
           .then(response => this.rows = response.data);
     }//created
-}//thread
+}//resultthread
+
+//const thread = { 
+//    data: function(){
+//      return {
+//        institle: "", instext: "", findclname: "", findtask: "", rows: "", clrows: "", name: "", page: 1
+//      }
+//    },//data
+//    template: '<ul><li v-for="row in rows">{{row.title}}</li></ul>',
+//    created: function(){
+//	axios.get("/php/xdomain/201012/thread")
+//          .then(response => this.rows = response.data);
+//    }//created
+//}//thread
 
 // routes ############################################################
 const routes = [
-  { path: '/thread',
+  { path: '/thread/:id',
       name: 'thread',
-      component: thread },
+      component: resultthread },
   { path: '/post',
       name: 'post',
       component: post },
@@ -219,7 +294,10 @@ const routes = [
       component: updthread},
   { path: '/post/upd/:postid',
       name: 'updpost',
-      component: updpost}
+      component: updpost},
+  { path: '/findexe/:findtextparam',
+      name: 'findexe',
+      component: findexe}
   //{ path: '/task/:name/:page', component: tasks },
   //{ path: '/task/:name/upd/:id', component: updtask }
   //{ path: '/task/:name/:page/upd/:id', component: updtask }
